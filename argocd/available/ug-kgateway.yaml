@@ -18,7 +18,7 @@ spec:
         releaseName: kgateway
         valueFiles:
           - $values/infra/base/kgateway/values.yaml
-    - repoURL: http://gitea-http.devtools.svc.cluster.local:3000/admin/util-gitops.git
+    - repoURL: https://gitea.util.lcl/admin/util-gitops.git
       targetRevision: main
       ref: values
   destination:

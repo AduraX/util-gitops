@@ -2,11 +2,17 @@
 
 ## Context
 
-Migrate utilStack services to Kubernetes using ArgoCD GitOps with App of Apps pattern. A single ArgoCD instance manages everything: cluster infrastructure, utilStack services, and Forge4X workloads.
+GitOps repo for Kubernetes application workloads managed by ArgoCD.
 
-**K8s-agnostic design** — the gitops repo works on Kind, RKE2, or any conformant K8s cluster. Cluster-specific components (CNI, load balancer) are isolated in an `infra/` overlay selected by environment, while platform services are portable.
+**Architecture**: Infrastructure services (Gitea, Keycloak, OpenLDAP, MinIO) run in Docker via utilStack — like external services (GitHub, EntraID, AWS S3). ArgoCD on K8s manages only application workloads, monitoring, AI, and Forge4X.
 
-**ArgoCD is the first tool installed after the K8s cluster is created.** Everything else is managed by ArgoCD declaratively.
+| Layer | Where | Services |
+|-------|-------|----------|
+| External (utilStack/Docker) | Docker Compose | Gitea, Keycloak, OpenLDAP, MinIO, PostgreSQL |
+| Infra (kind_Run.sh) | K8s imperatively | Cilium, MetalLB, cert-manager, Traefik |
+| Apps (ArgoCD) | K8s declaratively | Monitoring, Velero, Ollama, Open WebUI, Rancher, Forge4X |
+
+**K8s-agnostic design** — works on Kind, RKE2, or any conformant cluster.
 
 ## Directory Structure
 

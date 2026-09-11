@@ -1,29 +1,29 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: ug-openldap
+  name: ug-velero
   namespace: argocd
   labels:
     app.kubernetes.io/part-of: util-gitops
-    util-gitops.io/category: identity
+    util-gitops.io/category: backup
   annotations:
-    argocd.argoproj.io/sync-wave: "3"
+    argocd.argoproj.io/sync-wave: "5"
 spec:
   project: ug-infra
   sources:
-    - repoURL: https://jp-gouin.github.io/helm-openldap/
-      chart: openldap-stack-ha
+    - repoURL: https://vmware-tanzu.github.io/helm-charts
+      chart: velero
       targetRevision: "*"
       helm:
-        releaseName: openldap
+        releaseName: velero
         valueFiles:
-          - $values/platform/identity/openldap/values.yaml
-    - repoURL: http://gitea-http.devtools.svc.cluster.local:3000/admin/util-gitops.git
+          - $values/platform/backup/velero/values.yaml
+    - repoURL: https://gitea.util.lcl/admin/util-gitops.git
       targetRevision: main
       ref: values
   destination:
     server: https://kubernetes.default.svc
-    namespace: identity
+    namespace: velero
   ignoreDifferences:
     - group: ""
       kind: Service
@@ -36,4 +36,4 @@ spec:
       selfHeal: true
     syncOptions:
       - ServerSideApply=true
-      - CreateNamespace=false
+      - CreateNamespace=true

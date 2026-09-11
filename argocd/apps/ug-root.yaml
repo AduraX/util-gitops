@@ -8,7 +8,7 @@ metadata:
 spec:
   project: ug-root
   source:
-    repoURL: http://gitea-http.devtools.svc.cluster.local:3000/admin/util-gitops.git
+    repoURL: https://gitea.util.lcl/admin/util-gitops.git
     targetRevision: main
     path: argocd/apps
     directory:

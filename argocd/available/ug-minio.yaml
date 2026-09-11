@@ -1,29 +1,29 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: ug-gitea
+  name: ug-minio
   namespace: argocd
   labels:
     app.kubernetes.io/part-of: util-gitops
-    util-gitops.io/category: devtools
+    util-gitops.io/category: storage
   annotations:
     argocd.argoproj.io/sync-wave: "4"
 spec:
   project: ug-infra
   sources:
-    - repoURL: https://dl.gitea.com/charts/
-      chart: gitea
+    - repoURL: https://charts.min.io/
+      chart: minio
       targetRevision: "*"
       helm:
-        releaseName: gitea
+        releaseName: minio
         valueFiles:
-          - $values/platform/devtools/gitea/values.yaml
-    - repoURL: http://gitea-http.devtools.svc.cluster.local:3000/admin/util-gitops.git
+          - $values/platform/storage/minio/values.yaml
+    - repoURL: https://gitea.util.lcl/admin/util-gitops.git
       targetRevision: main
       ref: values
   destination:
     server: https://kubernetes.default.svc
-    namespace: devtools
+    namespace: storage
   ignoreDifferences:
     - group: ""
       kind: Service
@@ -36,4 +36,4 @@ spec:
       selfHeal: true
     syncOptions:
       - ServerSideApply=true
-      - CreateNamespace=true
+      - CreateNamespace=false
