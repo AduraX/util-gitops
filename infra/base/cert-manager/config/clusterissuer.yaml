@@ -1,0 +1,31 @@
+# Self-signed CA ClusterIssuer for local development
+# Creates a CA that cert-manager uses to issue TLS certificates
+---
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: selfsigned-issuer
+spec:
+  selfSigned: {}
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: util-ca
+  namespace: cert-manager
+spec:
+  isCA: true
+  commonName: util-ca
+  secretName: util-ca-secret
+  duration: 87600h    # 10 years
+  issuerRef:
+    name: selfsigned-issuer
+    kind: ClusterIssuer
+---
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: util-ca-issuer
+spec:
+  ca:
+    secretName: util-ca-secret

@@ -1,0 +1,19 @@
+# MetalLB IP address pool for RKE2 cluster
+# Update addresses to match your physical network range
+apiVersion: metallb.io/v1beta1
+kind: IPAddressPool
+metadata:
+  name: rke2-pool
+  namespace: metallb-system
+spec:
+  addresses:
+    - 192.168.1.200-192.168.1.250   # Adjust to your network
+---
+apiVersion: metallb.io/v1beta1
+kind: L2Advertisement
+metadata:
+  name: rke2-l2
+  namespace: metallb-system
+spec:
+  ipAddressPools:
+    - rke2-pool

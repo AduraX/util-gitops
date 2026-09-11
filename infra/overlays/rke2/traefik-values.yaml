@@ -1,0 +1,5 @@
+# Traefik overrides for RKE2 cluster — LoadBalancer via MetalLB
+# Merged with infra/base/traefik/values.yaml
+
+service:
+  type: LoadBalancer

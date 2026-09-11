@@ -1,0 +1,52 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vscodium
+  namespace: devtools
+  labels:
+    app: vscodium
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: vscodium
+  template:
+    metadata:
+      labels:
+        app: vscodium
+    spec:
+      containers:
+        - name: vscodium
+          image: linuxserver/vscodium-web:latest
+          ports:
+            - containerPort: 3000
+          env:
+            - name: PUID
+              value: "1000"
+            - name: PGID
+              value: "1000"
+          volumeMounts:
+            - name: config
+              mountPath: /config
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "250m"
+            limits:
+              memory: "1Gi"
+              cpu: "1"
+      volumes:
+        - name: config
+          persistentVolumeClaim:
+            claimName: vscodium-config
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: vscodium-config
+  namespace: devtools
+spec:
+  accessModes: ["ReadWriteOnce"]
+  resources:
+    requests:
+      storage: 5Gi

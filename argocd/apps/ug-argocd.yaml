@@ -1,0 +1,39 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: ug-argocd
+  namespace: argocd
+  labels:
+    app.kubernetes.io/part-of: util-gitops
+    util-gitops.io/category: infra
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+spec:
+  project: ug-infra
+  sources:
+    - repoURL: https://argoproj.github.io/argo-helm
+      chart: argo-cd
+      targetRevision: "3.3.3"
+      helm:
+        releaseName: argocd
+        valueFiles:
+          - $values/argocd/values/argocd-values.yaml
+    - repoURL: https://gitea.util.lcl/admin/util-gitops.git
+      targetRevision: main
+      ref: values
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: argocd
+  ignoreDifferences:
+    - group: ""
+      kind: Service
+      jsonPointers:
+        - /spec/clusterIP
+        - /spec/clusterIPs
+  syncPolicy:
+    automated:
+      prune: false
+      selfHeal: true
+    syncOptions:
+      - ServerSideApply=true
+      - CreateNamespace=false

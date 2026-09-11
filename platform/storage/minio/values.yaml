@@ -1,0 +1,19 @@
+# MinIO Helm values
+# Chart: minio/minio
+
+mode: standalone
+
+rootUser: admin
+rootPassword: changeme
+
+persistence:
+  enabled: true
+  size: 10Gi
+
+consoleService:
+  type: ClusterIP
+  port: 9001
+
+service:
+  type: ClusterIP
+  port: 9000

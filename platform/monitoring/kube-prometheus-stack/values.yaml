@@ -1,0 +1,28 @@
+# kube-prometheus-stack Helm values
+# Chart: prometheus-community/kube-prometheus-stack
+# Bundles: Prometheus, Grafana, Node Exporter, kube-state-metrics
+
+grafana:
+  enabled: true
+  adminUser: admin
+  adminPassword: changeme
+  persistence:
+    enabled: true
+    size: 5Gi
+
+prometheus:
+  prometheusSpec:
+    retention: 30d
+    storageSpec:
+      volumeClaimTemplate:
+        spec:
+          accessModes: ["ReadWriteOnce"]
+          resources:
+            requests:
+              storage: 10Gi
+
+nodeExporter:
+  enabled: true
+
+alertmanager:
+  enabled: false

@@ -1,0 +1,16 @@
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: ug-root
+  namespace: argocd
+spec:
+  description: "util-gitops root app-of-apps — can only deploy Application resources into argocd namespace"
+  sourceRepos:
+    - '*'
+  destinations:
+    - namespace: argocd
+      server: https://kubernetes.default.svc
+  clusterResourceWhitelist: []
+  namespaceResourceWhitelist:
+    - group: argoproj.io
+      kind: Application

@@ -1,0 +1,3 @@
+# CloudNativePG operator Helm values
+# Chart: cloudnative-pg/cloudnative-pg
+# Database clusters defined separately in clusters/

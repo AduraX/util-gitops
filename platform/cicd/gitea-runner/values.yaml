@@ -1,0 +1,14 @@
+# Gitea Act Runner Helm values
+# Chart: gitea/gitea-act-runner
+
+runner:
+  config:
+    runner:
+      capacity: 1
+      timeout: 3h
+    cache:
+      enabled: true
+
+  registration:
+    instanceUrl: https://gitea.util.lcl
+    token: ""    # Set via secret — generate from Gitea admin UI

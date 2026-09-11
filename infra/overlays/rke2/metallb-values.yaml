@@ -1,0 +1,3 @@
+# MetalLB values for RKE2 cluster
+# Chart: metallb/metallb
+# IPAddressPool applied separately via metallb-config/

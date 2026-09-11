@@ -1,0 +1,39 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: ug-gitea-runner
+  namespace: argocd
+  labels:
+    app.kubernetes.io/part-of: util-gitops
+    util-gitops.io/category: cicd
+  annotations:
+    argocd.argoproj.io/sync-wave: "4"
+spec:
+  project: ug-infra
+  sources:
+    - repoURL: https://dl.gitea.com/charts/
+      chart: gitea-act-runner
+      targetRevision: "*"
+      helm:
+        releaseName: gitea-runner
+        valueFiles:
+          - $values/platform/cicd/gitea-runner/values.yaml
+    - repoURL: https://gitea.util.lcl/admin/util-gitops.git
+      targetRevision: main
+      ref: values
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: cicd
+  ignoreDifferences:
+    - group: ""
+      kind: Service
+      jsonPointers:
+        - /spec/clusterIP
+        - /spec/clusterIPs
+  syncPolicy:
+    automated:
+      prune: false
+      selfHeal: true
+    syncOptions:
+      - ServerSideApply=true
+      - CreateNamespace=true

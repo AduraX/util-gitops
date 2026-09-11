@@ -1,0 +1,27 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: ug-forge4x-root
+  namespace: argocd
+  labels:
+    app.kubernetes.io/part-of: util-gitops
+    util-gitops.io/category: forge4x
+  annotations:
+    argocd.argoproj.io/sync-wave: "7"
+spec:
+  project: ug-forge4x
+  source:
+    repoURL: https://gitea.util.lcl/admin/f4x-dev-01-gitops.git
+    targetRevision: main
+    path: argocd/apps
+    directory:
+      recurse: false
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: argocd
+  syncPolicy:
+    automated:
+      prune: false
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=false

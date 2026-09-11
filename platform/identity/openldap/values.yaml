@@ -1,0 +1,25 @@
+# OpenLDAP Stack HA Helm values
+# Chart: helm-openldap/openldap-stack-ha
+
+replicaCount: 1
+
+global:
+  adminPassword: changeme
+  configPassword: changeme
+  ldapDomain: ldap.util.lcl
+
+env:
+  LDAP_ORGANISATION: "UtilStack"
+  LDAP_TLS: "true"
+
+persistence:
+  enabled: true
+  size: 1Gi
+
+# phpLDAPadmin (web UI)
+phpldapadmin:
+  enabled: true
+
+# Self-service password reset
+ltb-passwd:
+  enabled: false

@@ -1,0 +1,4 @@
+bootstrap/config.env
+*.key
+*.pem
+.env

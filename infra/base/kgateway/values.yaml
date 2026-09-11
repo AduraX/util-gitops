@@ -1,0 +1,5 @@
+# kgateway Helm values — Envoy-powered Gateway API implementation
+# Chart: oci://cr.kgateway.dev/kgateway-dev/charts/kgateway
+
+validation:
+  level: standard    # standard | strict

@@ -1,0 +1,39 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: ug-cilium
+  namespace: argocd
+  labels:
+    app.kubernetes.io/part-of: util-gitops
+    util-gitops.io/category: infra
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+spec:
+  project: ug-infra
+  sources:
+    - repoURL: https://helm.cilium.io/
+      chart: cilium
+      targetRevision: "1.19.5"
+      helm:
+        releaseName: cilium
+        valueFiles:
+          - $values/infra/overlays/kind/cilium-values.yaml
+    - repoURL: https://gitea.util.lcl/admin/util-gitops.git
+      targetRevision: main
+      ref: values
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: kube-system
+  ignoreDifferences:
+    - group: ""
+      kind: Service
+      jsonPointers:
+        - /spec/clusterIP
+        - /spec/clusterIPs
+  syncPolicy:
+    automated:
+      prune: false
+      selfHeal: false    # CNI is sensitive
+    syncOptions:
+      - ServerSideApply=true
+      - CreateNamespace=false

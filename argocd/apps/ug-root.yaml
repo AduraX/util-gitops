@@ -1,0 +1,24 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: ug-root
+  namespace: argocd
+  labels:
+    app.kubernetes.io/part-of: util-gitops
+spec:
+  project: ug-root
+  source:
+    repoURL: https://gitea.util.lcl/admin/util-gitops.git
+    targetRevision: main
+    path: argocd/apps
+    directory:
+      recurse: false
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: argocd
+  syncPolicy:
+    automated:
+      prune: false
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=false

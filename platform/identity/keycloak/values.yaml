@@ -1,0 +1,29 @@
+# Keycloak Helm values
+# Chart: bitnami/keycloak
+
+auth:
+  adminUser: admin
+  adminPassword: changeme    # Override via bootstrap secret
+
+production: true
+proxy: edge    # TLS terminated at Traefik
+httpRelativePath: /
+
+postgresql:
+  enabled: false    # Using CNPG external database
+
+externalDatabase:
+  host: keycloak-db-rw.storage.svc.cluster.local
+  port: 5432
+  database: keycloak
+  user: keycloak
+  existingSecret: keycloak-db-credentials
+  existingSecretPasswordKey: password
+
+extraEnvVars:
+  - name: KC_HOSTNAME
+    value: keycloak.util.lcl
+  - name: KC_HEALTH_ENABLED
+    value: "true"
+  - name: KC_PROXY_HEADERS
+    value: xforwarded

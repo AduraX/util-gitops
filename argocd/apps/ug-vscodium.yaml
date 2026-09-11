@@ -1,0 +1,28 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: ug-vscodium
+  namespace: argocd
+  labels:
+    app.kubernetes.io/part-of: util-gitops
+    util-gitops.io/category: devtools
+  annotations:
+    argocd.argoproj.io/sync-wave: "6"
+spec:
+  project: ug-infra
+  source:
+    repoURL: https://gitea.util.lcl/admin/util-gitops.git
+    targetRevision: main
+    path: platform/devtools/vscodium
+    directory:
+      recurse: false
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: devtools
+  syncPolicy:
+    automated:
+      prune: false
+      selfHeal: true
+    syncOptions:
+      - ServerSideApply=true
+      - CreateNamespace=false

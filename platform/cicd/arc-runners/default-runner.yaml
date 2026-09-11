@@ -1,0 +1,17 @@
+# GitHub ARC RunnerScaleSet — adjust githubConfigUrl and secret
+apiVersion: actions.github.com/v1alpha1
+kind: AutoscalingRunnerSet
+metadata:
+  name: default-runner
+  namespace: arc-runners
+spec:
+  githubConfigUrl: https://github.com/your-org    # Update to your org/repo
+  githubConfigSecret: github-arc-token              # Create this secret with PAT
+  minRunners: 0
+  maxRunners: 5
+  template:
+    spec:
+      containers:
+        - name: runner
+          image: ghcr.io/actions/actions-runner:latest
+          command: ["/home/runner/run.sh"]

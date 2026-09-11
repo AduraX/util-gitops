@@ -1,0 +1,59 @@
+# Traefik Helm values — Gateway API mode
+# Chart: traefik/traefik
+# Cluster-specific overrides in infra/overlays/<cluster>/traefik-values.yaml
+
+ports:
+  web:
+    port: 8880
+    redirections:
+      entryPoint:
+        to: websecure
+        scheme: https
+        permanent: true
+  websecure:
+    port: 8443
+
+api:
+  dashboard: true
+  insecure: false
+
+ingressRoute:
+  dashboard:
+    enabled: false    # Use Gateway API HTTPRoute instead
+
+ingressClass:
+  enabled: false
+
+providers:
+  kubernetesIngress:
+    enabled: false
+  kubernetesGateway:
+    enabled: true
+
+gateway:
+  listeners:
+    web:
+      port: 8880
+      protocol: HTTP
+      namespacePolicy:
+        from: All
+    websecure:
+      port: 8443
+      protocol: HTTPS
+      namespacePolicy:
+        from: All
+      mode: Terminate
+      certificateRefs:
+        - kind: Secret
+          name: traefik-selfsigned-tls
+          group: ""
+
+logs:
+  general:
+    level: INFO
+  access:
+    enabled: true
+
+metrics:
+  prometheus:
+    enabled: true

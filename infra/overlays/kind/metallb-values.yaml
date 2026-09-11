@@ -1,0 +1,3 @@
+# MetalLB values for Kind cluster
+# Chart: metallb/metallb
+# IPAddressPool applied separately via metallb-config/

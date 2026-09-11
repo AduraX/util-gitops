@@ -1,0 +1,29 @@
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: keycloak-db
+  namespace: storage
+spec:
+  instances: 1
+  storage:
+    size: 5Gi
+  bootstrap:
+    initdb:
+      database: keycloak
+      owner: keycloak
+      secret:
+        name: keycloak-db-credentials
+  postgresql:
+    parameters:
+      max_connections: "100"
+      shared_buffers: "128MB"
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: keycloak-db-credentials
+  namespace: storage
+type: kubernetes.io/basic-auth
+stringData:
+  username: keycloak
+  password: changeme    # Override via SealedSecret or bootstrap

@@ -1,0 +1,16 @@
+# Ollama Helm values
+# Chart: ollama-helm/ollama
+
+persistence:
+  enabled: true
+  size: 20Gi
+
+# GPU support — uncomment for NVIDIA
+# runtimeClassName: nvidia
+# resources:
+#   limits:
+#     nvidia.com/gpu: 1
+
+service:
+  type: ClusterIP
+  port: 11434

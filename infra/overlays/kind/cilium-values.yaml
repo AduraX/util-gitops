@@ -1,0 +1,21 @@
+# Cilium values for Kind cluster — VXLAN tunnel mode
+# Chart: cilium/cilium
+
+kubeProxyReplacement: true
+routingMode: tunnel
+tunnelProtocol: vxlan
+
+ipam:
+  mode: kubernetes
+
+socketLB:
+  hostNamespaceOnly: true
+
+l2announcements:
+  enabled: true
+
+externalIPs:
+  enabled: true
+
+operator:
+  replicas: 1

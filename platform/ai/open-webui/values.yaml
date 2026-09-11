@@ -1,0 +1,9 @@
+# Open WebUI Helm values
+# Chart: open-webui/open-webui
+
+ollamaUrls:
+  - http://ollama.ai.svc.cluster.local:11434
+
+persistence:
+  enabled: true
+  size: 2Gi

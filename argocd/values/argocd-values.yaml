@@ -1,0 +1,26 @@
+# ArgoCD Helm values — self-managed by ArgoCD
+# Chart: argo/argo-cd
+
+dex:
+  enabled: false
+
+server:
+  extraArgs:
+    - --insecure    # TLS terminated at Traefik
+
+configs:
+  params:
+    server.insecure: true
+  cm:
+    url: https://argocd.util.lcl
+    # Keycloak OIDC (uncomment after Keycloak is deployed)
+    # oidc.config: |
+    #   name: Keycloak
+    #   issuer: https://keycloak.util.lcl/realms/master
+    #   clientID: argocd-client
+    #   clientSecret: $oidc.keycloak.clientSecret
+    #   requestedScopes: ["openid", "profile", "email", "groups"]
+  rbac:
+    policy.default: role:readonly
+    policy.csv: |
+      g, admins, role:admin

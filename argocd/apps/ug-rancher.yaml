@@ -1,0 +1,43 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: ug-rancher
+  namespace: argocd
+  labels:
+    app.kubernetes.io/part-of: util-gitops
+    util-gitops.io/category: devtools
+  annotations:
+    argocd.argoproj.io/sync-wave: "6"
+spec:
+  project: ug-infra
+  source:
+    repoURL: https://releases.rancher.com/server-charts/stable
+    chart: rancher
+    targetRevision: "*"
+    helm:
+      releaseName: rancher
+      parameters:
+        - name: hostname
+          value: rancher.util.lcl
+        - name: bootstrapPassword
+          value: changeme
+        - name: ingress.tls.source
+          value: secret
+        - name: tls
+          value: external
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: cattle-system
+  ignoreDifferences:
+    - group: ""
+      kind: Service
+      jsonPointers:
+        - /spec/clusterIP
+        - /spec/clusterIPs
+  syncPolicy:
+    automated:
+      prune: false
+      selfHeal: true
+    syncOptions:
+      - ServerSideApply=true
+      - CreateNamespace=true

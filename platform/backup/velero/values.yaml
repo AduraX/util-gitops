@@ -1,0 +1,66 @@
+# Velero Helm values — K8s-native backup/restore
+# Chart: vmware-tanzu/velero
+# Backs up K8s resources + persistent volumes
+
+# Use MinIO as the S3-compatible backup target
+configuration:
+  backupStorageLocation:
+    - name: default
+      provider: aws
+      bucket: velero-backups
+      config:
+        region: minio
+        s3ForcePathStyle: "true"
+        s3Url: http://minio.storage.svc.cluster.local:9000
+  volumeSnapshotLocation: []
+
+credentials:
+  useSecret: true
+  secretContents:
+    cloud: |
+      [default]
+      aws_access_key_id=admin
+      aws_secret_access_key=changeme
+
+initContainers:
+  - name: velero-plugin-for-aws
+    image: velero/velero-plugin-for-aws:v1.11.0
+    volumeMounts:
+      - mountPath: /target
+        name: plugins
+
+# Segmented backup schedules — mirrors utilStack archive structure
+# Each namespace group can be backed up and restored independently
+schedules:
+  # Core platform (lightweight, daily)
+  backup-identity:
+    disabled: false
+    schedule: "0 2 * * *"
+    template:
+      ttl: "720h"    # 30 days
+      includedNamespaces: ["identity", "secrets"]
+  backup-devtools:
+    disabled: false
+    schedule: "0 2 * * *"
+    template:
+      ttl: "720h"
+      includedNamespaces: ["devtools", "cicd"]
+  backup-storage:
+    disabled: false
+    schedule: "0 2 * * *"
+    template:
+      ttl: "720h"
+      includedNamespaces: ["storage", "cnpg-system"]
+  backup-monitoring:
+    disabled: false
+    schedule: "0 3 * * *"
+    template:
+      ttl: "360h"    # 15 days (monitoring data is large)
+      includedNamespaces: ["monitoring"]
+  # Heavy services (weekly)
+  backup-ai:
+    disabled: false
+    schedule: "0 4 * * 0"    # Sunday
+    template:
+      ttl: "720h"
+      includedNamespaces: ["ai"]

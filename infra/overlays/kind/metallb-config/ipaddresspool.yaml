@@ -1,0 +1,21 @@
+# MetalLB IP address pool for Kind cluster
+# The IP range must be within the Docker bridge network subnet.
+# Run: docker network inspect kind -f '{{range .IPAM.Config}}{{.Subnet}}{{end}}'
+# to determine the correct range. Update the addresses below accordingly.
+apiVersion: metallb.io/v1beta1
+kind: IPAddressPool
+metadata:
+  name: kind-pool
+  namespace: metallb-system
+spec:
+  addresses:
+    - 172.21.255.200-172.21.255.250   # Adjust to your Docker kind network subnet
+---
+apiVersion: metallb.io/v1beta1
+kind: L2Advertisement
+metadata:
+  name: kind-l2
+  namespace: metallb-system
+spec:
+  ipAddressPools:
+    - kind-pool

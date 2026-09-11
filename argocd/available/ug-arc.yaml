@@ -1,0 +1,39 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: ug-arc
+  namespace: argocd
+  labels:
+    app.kubernetes.io/part-of: util-gitops
+    util-gitops.io/category: cicd
+  annotations:
+    argocd.argoproj.io/sync-wave: "4"
+spec:
+  project: ug-infra
+  sources:
+    - repoURL: https://actions-runner-controller.github.io/actions-runner-controller
+      chart: gha-runner-scale-set-controller
+      targetRevision: "*"
+      helm:
+        releaseName: arc
+        valueFiles:
+          - $values/platform/cicd/arc/values.yaml
+    - repoURL: https://gitea.util.lcl/admin/util-gitops.git
+      targetRevision: main
+      ref: values
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: arc-systems
+  ignoreDifferences:
+    - group: ""
+      kind: Service
+      jsonPointers:
+        - /spec/clusterIP
+        - /spec/clusterIPs
+  syncPolicy:
+    automated:
+      prune: false
+      selfHeal: true
+    syncOptions:
+      - ServerSideApply=true
+      - CreateNamespace=true

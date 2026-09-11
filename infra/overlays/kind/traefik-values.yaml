@@ -1,0 +1,11 @@
+# Traefik overrides for Kind cluster — NodePort with extraPortMappings
+# Merged with infra/base/traefik/values.yaml
+
+service:
+  type: NodePort
+
+ports:
+  web:
+    nodePort: 30080
+  websecure:
+    nodePort: 30443
