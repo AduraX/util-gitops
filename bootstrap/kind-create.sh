@@ -65,8 +65,8 @@ cat <<EOF | kind create cluster --name="$CLUSTER_NAME" --image "$KIND_NODE_IMAGE
 kind: Cluster
 apiVersion: kind.x-k8s.io/v1alpha4
 networking:
-  disableDefaultCNI: true    # Cilium will be installed by ArgoCD
-  kubeProxyMode: none        # Cilium replaces kube-proxy
+  disableDefaultCNI: true    # Cilium will be installed by bootstrap
+  # kubeProxyMode: none      # Keep kube-proxy; Cilium runs alongside it
 nodes:
 - role: control-plane
   extraPortMappings:
