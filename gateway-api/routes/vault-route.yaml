@@ -1,5 +1,5 @@
 # NOTE: Only one of openbao-route or vault-route should be active at a time.
-# Both route the same hostname (vault.util.lcl) to different backends.
+# Both route the same hostname (vault.gitops.lcl) to different backends.
 apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
 metadata:
@@ -11,7 +11,7 @@ spec:
       namespace: kgateway-system
       sectionName: https
   hostnames:
-    - "vault.util.lcl"
+    - "vault.gitops.lcl"
   rules:
     - matches:
         - path:

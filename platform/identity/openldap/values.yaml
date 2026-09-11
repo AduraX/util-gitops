@@ -6,7 +6,7 @@ replicaCount: 1
 global:
   adminPassword: changeme
   configPassword: changeme
-  ldapDomain: ldap.util.lcl
+  ldapDomain: ldap.gitops.lcl
 
 env:
   LDAP_ORGANISATION: "UtilStack"

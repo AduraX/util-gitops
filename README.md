@@ -247,6 +247,6 @@ spec:
 
 1. `bootstrap.sh` completes without errors on a fresh Kind cluster
 2. `kubectl get applications -n argocd` shows all apps synced/healthy
-3. All services accessible via `https://<service>.util.lcl`
-4. ArgoCD UI at `https://argocd.util.lcl` shows full app tree
+3. All services accessible via `https://<service>.gitops.lcl`
+4. ArgoCD UI at `https://argocd.gitops.lcl` shows full app tree
 5. Forge4X modules visible in ArgoCD dashboard

@@ -9,7 +9,7 @@ spec:
       namespace: kgateway-system
       sectionName: https
   hostnames:
-    - "grafana.util.lcl"
+    - "grafana.gitops.lcl"
   rules:
     - matches:
         - path:

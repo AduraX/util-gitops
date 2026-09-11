@@ -9,7 +9,7 @@ spec:
       namespace: kgateway-system
       sectionName: https
   hostnames:
-    - "prometheus.util.lcl"
+    - "prometheus.gitops.lcl"
   rules:
     - matches:
         - path:

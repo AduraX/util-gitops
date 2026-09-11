@@ -9,7 +9,7 @@ spec:
       namespace: kgateway-system
       sectionName: https
   hostnames:
-    - "gitea.util.lcl"
+    - "gitea.gitops.lcl"
   rules:
     - matches:
         - path:

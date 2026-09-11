@@ -18,7 +18,7 @@ spec:
       releaseName: rancher
       parameters:
         - name: hostname
-          value: rancher.util.lcl
+          value: rancher.gitops.lcl
         - name: bootstrapPassword
           value: changeme
         - name: ingress.tls.source

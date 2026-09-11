@@ -10,5 +10,5 @@ runner:
       enabled: true
 
   registration:
-    instanceUrl: https://gitea.util.lcl
+    instanceUrl: https://gitea.gitops.lcl
     token: ""    # Set via secret — generate from Gitea admin UI

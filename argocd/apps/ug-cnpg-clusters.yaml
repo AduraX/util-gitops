@@ -11,7 +11,7 @@ metadata:
 spec:
   project: ug-infra
   source:
-    repoURL: https://gitea.util.lcl/admin/util-gitops.git
+    repoURL: http://gitea-http.devtools.svc.cluster.local:3000/admin/util-gitops.git
     targetRevision: main
     path: platform/storage/cnpg/clusters
     directory:

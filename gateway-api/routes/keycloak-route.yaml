@@ -9,7 +9,7 @@ spec:
       namespace: kgateway-system
       sectionName: https
   hostnames:
-    - "keycloak.util.lcl"
+    - "keycloak.gitops.lcl"
   rules:
     - matches:
         - path:

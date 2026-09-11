@@ -1,22 +1,42 @@
 # ArgoCD Helm values — self-managed by ArgoCD
 # Chart: argo/argo-cd
 
+global:
+  networkPolicy:
+    create: false
+
 dex:
   enabled: false
 
+repoServer:
+  livenessProbe:
+    timeoutSeconds: 5
+    periodSeconds: 30
+    failureThreshold: 5
+  readinessProbe:
+    timeoutSeconds: 5
+    periodSeconds: 30
+    failureThreshold: 5
+
+controller:
+  livenessProbe:
+    timeoutSeconds: 5
+  readinessProbe:
+    timeoutSeconds: 5
+
 server:
   extraArgs:
-    - --insecure    # TLS terminated at Traefik
+    - --insecure    # TLS terminated at gateway
 
 configs:
   params:
     server.insecure: true
   cm:
-    url: https://argocd.util.lcl
+    url: https://argocd.gitops.lcl
     # Keycloak OIDC (uncomment after Keycloak is deployed)
     # oidc.config: |
     #   name: Keycloak
-    #   issuer: https://keycloak.util.lcl/realms/master
+    #   issuer: https://keycloak.gitops.lcl/realms/master
     #   clientID: argocd-client
     #   clientSecret: $oidc.keycloak.clientSecret
     #   requestedScopes: ["openid", "profile", "email", "groups"]

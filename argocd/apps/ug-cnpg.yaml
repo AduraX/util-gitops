@@ -18,7 +18,7 @@ spec:
         releaseName: cnpg
         valueFiles:
           - $values/platform/storage/cnpg/values.yaml
-    - repoURL: https://gitea.util.lcl/admin/util-gitops.git
+    - repoURL: http://gitea-http.devtools.svc.cluster.local:3000/admin/util-gitops.git
       targetRevision: main
       ref: values
   destination:

@@ -11,7 +11,7 @@ metadata:
 spec:
   project: ug-forge4x
   source:
-    repoURL: https://gitea.util.lcl/admin/f4x-dev-01-gitops.git
+    repoURL: https://gitea.gitops.lcl/admin/f4x-dev-01-gitops.git
     targetRevision: main
     path: argocd/apps
     directory:

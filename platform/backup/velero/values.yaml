@@ -39,18 +39,21 @@ schedules:
     template:
       ttl: "720h"    # 30 days
       includedNamespaces: ["identity", "secrets"]
+      excludedResources: ["httproutes.gateway.networking.k8s.io"]
   backup-devtools:
     disabled: false
     schedule: "0 2 * * *"
     template:
       ttl: "720h"
       includedNamespaces: ["devtools", "cicd"]
+      excludedResources: ["httproutes.gateway.networking.k8s.io"]
   backup-storage:
     disabled: false
     schedule: "0 2 * * *"
     template:
       ttl: "720h"
       includedNamespaces: ["storage", "cnpg-system"]
+      excludedResources: ["httproutes.gateway.networking.k8s.io"]
   backup-monitoring:
     disabled: false
     schedule: "0 3 * * *"

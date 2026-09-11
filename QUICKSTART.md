@@ -4,7 +4,7 @@
 
 - Kubernetes cluster (Kind, RKE2, or any conformant cluster)
 - `kubectl`, `helm`, `git` installed
-- Domain resolving via dnsmasq (e.g., `*.util.lcl → <cluster-ip>`)
+- Domain resolving via dnsmasq (e.g., `*.gitops.lcl → <cluster-ip>`)
 
 ## 1. Create a Bare Kubernetes Cluster
 
@@ -34,7 +34,7 @@ nano config.env
 Key settings to change:
 ```bash
 CLUSTER_TYPE=kind              # kind | rke2
-DOMAIN=util.lcl                # your domain
+DOMAIN=gitops.lcl                # your domain
 GITEA_ADMIN_PASSWORD=<strong>  # Gitea admin password
 KEYCLOAK_ADMIN_PASSWORD=<strong>
 GITEA_DB_PASSWORD=<strong>
@@ -55,17 +55,45 @@ git commit -m "Initial commit"
 ## 4. Bootstrap
 
 ```bash
+# All services
 ./bootstrap/bootstrap.sh --cluster kind
+
+# Selected groups only
+./bootstrap/bootstrap.sh --cluster kind --services storage,identity,devtools
+
+# Core + monitoring only
+./bootstrap/bootstrap.sh --cluster kind --services monitoring
 ```
 
-This installs (in order):
+**Service groups:**
+
+| Group | Services |
+|-------|----------|
+| core | ArgoCD, CNI, MetalLB, cert-manager, kgateway, routes (always included) |
+| storage | CNPG operator, MinIO |
+| identity | Keycloak, OpenLDAP, OpenBao |
+| devtools | Gitea, Gitea runner, VSCodium |
+| monitoring | kube-prometheus-stack, Velero |
+| ai | Ollama, Open WebUI |
+| rancher | Rancher |
+| forge4x | Forge4X root |
+
+Bootstrap installs (in order):
 1. Cilium CNI + MetalLB (Kind only)
 2. cert-manager + kgateway
 3. ArgoCD
 4. CNPG operator + Gitea database
 5. Gitea
 6. Pushes this repo to Gitea
-7. Activates App of Apps — ArgoCD takes over
+7. Activates selected service groups
+8. Applies App of Apps — ArgoCD takes over
+
+To add/remove services after bootstrap:
+```bash
+mv argocd/available/ug-ollama.yaml argocd/apps/       # activate
+mv argocd/apps/ug-rancher.yaml argocd/available/      # deactivate
+git add -A && git commit -m "Update services" && git push gitea main
+```
 
 ## 5. Monitor
 
@@ -81,17 +109,17 @@ kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.pas
 
 | Service | URL |
 |---------|-----|
-| ArgoCD | https://argocd.util.lcl |
-| Gitea | https://gitea.util.lcl |
-| Keycloak | https://keycloak.util.lcl |
-| Grafana | https://grafana.util.lcl |
-| Prometheus | https://prometheus.util.lcl |
-| MinIO Console | https://minio.util.lcl |
-| MinIO S3 API | https://minio-api.util.lcl |
-| OpenBao (Vault) | https://vault.util.lcl |
-| Open WebUI (LLM) | https://webui.util.lcl |
-| VSCodium | https://vscodium.util.lcl |
-| Rancher | https://rancher.util.lcl |
+| ArgoCD | https://argocd.gitops.lcl |
+| Gitea | https://gitea.gitops.lcl |
+| Keycloak | https://keycloak.gitops.lcl |
+| Grafana | https://grafana.gitops.lcl |
+| Prometheus | https://prometheus.gitops.lcl |
+| MinIO Console | https://minio.gitops.lcl |
+| MinIO S3 API | https://minio-api.gitops.lcl |
+| OpenBao (Vault) | https://vault.gitops.lcl |
+| Open WebUI (LLM) | https://webui.gitops.lcl |
+| VSCodium | https://vscodium.gitops.lcl |
+| Rancher | https://rancher.gitops.lcl |
 
 ## Swapping Services
 

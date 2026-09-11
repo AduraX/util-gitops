@@ -1,7 +1,8 @@
 # cert-manager Helm values
 # Chart: jetstack/cert-manager
 
-installCRDs: true
+crds:
+  enabled: true
 
 replicaCount: 1
 

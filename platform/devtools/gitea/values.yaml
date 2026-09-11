@@ -5,35 +5,32 @@ gitea:
   admin:
     username: admin
     password: changeme
-    email: admin@util.lcl
+    email: admin@gitops.lcl
   config:
     APP_NAME: Gitea
     server:
-      DOMAIN: gitea.util.lcl
-      ROOT_URL: https://gitea.util.lcl
-      SSH_DOMAIN: gitea.util.lcl
+      DOMAIN: gitea.gitops.lcl
+      ROOT_URL: https://gitea.gitops.lcl
+      SSH_DOMAIN: gitea.gitops.lcl
       SSH_PORT: 22
     repository:
       ENABLE_PUSH_CREATE_USER: true
       ENABLE_PUSH_CREATE_ORG: true
     actions:
       ENABLED: true
+    database:
+      DB_TYPE: postgres
+      HOST: gitea-db-rw.storage.svc.cluster.local:5432
+      NAME: gitea
+      USER: gitea
+      PASSWD: changeme    # Override via --set at bootstrap
+      SSL_MODE: disable
 
 postgresql:
   enabled: false
 
 postgresql-ha:
   enabled: false
-
-# External CNPG database
-gitea:
-  config:
-    database:
-      DB_TYPE: postgres
-      HOST: gitea-db-rw.storage.svc.cluster.local:5432
-      NAME: gitea
-      USER: gitea
-      PASSWD: changeme    # Override via secret
 
 persistence:
   enabled: true

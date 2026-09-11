@@ -9,7 +9,7 @@ spec:
       namespace: kgateway-system
       sectionName: https
   hostnames:
-    - "rancher.util.lcl"
+    - "rancher.gitops.lcl"
   rules:
     - matches:
         - path:

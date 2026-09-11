@@ -9,7 +9,7 @@ spec:
       namespace: kgateway-system
       sectionName: https
   hostnames:
-    - "webui.util.lcl"
+    - "webui.gitops.lcl"
   rules:
     - matches:
         - path:

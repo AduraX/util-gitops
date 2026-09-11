@@ -5,6 +5,12 @@ kubeProxyReplacement: true
 routingMode: tunnel
 tunnelProtocol: vxlan
 
+# Required when replacing kube-proxy: Cilium must reach the API server
+# directly via the control-plane node IP (not the service IP 10.96.0.1)
+# The bootstrap script auto-detects and passes --set for these.
+# k8sServiceHost: <auto-detected>
+# k8sServicePort: 6443
+
 ipam:
   mode: kubernetes
 

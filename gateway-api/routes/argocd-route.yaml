@@ -9,7 +9,7 @@ spec:
       namespace: kgateway-system
       sectionName: https
   hostnames:
-    - "argocd.util.lcl"
+    - "argocd.gitops.lcl"
   rules:
     - matches:
         - path:

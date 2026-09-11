@@ -23,7 +23,7 @@ kind: Secret
 metadata:
   name: gitea-db-credentials
   namespace: storage
-type: kubernetes.io/basic-auth
+type: Opaque
 stringData:
   username: gitea
-  password: changeme    # Override via SealedSecret or bootstrap
+  password: changeme

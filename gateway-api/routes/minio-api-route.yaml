@@ -9,7 +9,7 @@ spec:
       namespace: kgateway-system
       sectionName: https
   hostnames:
-    - "minio-api.util.lcl"
+    - "minio-api.gitops.lcl"
   rules:
     - matches:
         - path:

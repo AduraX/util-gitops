@@ -4,8 +4,19 @@
 # Imperatively installs the minimum components needed for ArgoCD to take over.
 #
 # Usage:
-#   ./bootstrap.sh --cluster kind    # Bootstrap on Kind cluster
-#   ./bootstrap.sh --cluster rke2    # Bootstrap on RKE2 cluster
+#   ./bootstrap.sh --cluster kind                          # All services
+#   ./bootstrap.sh --cluster kind --services all           # Same as above
+#   ./bootstrap.sh --cluster kind --services core,identity # Selected groups
+#
+# Service groups:
+#   core       — ArgoCD, CNI, MetalLB, cert-manager, kgateway, routes (always included)
+#   storage    — CNPG, MinIO
+#   identity   — Keycloak, OpenLDAP, OpenBao/Vault
+#   devtools   — Gitea, Gitea runner/ARC, VSCodium
+#   monitoring — kube-prometheus-stack, Velero
+#   ai         — Ollama, Open WebUI
+#   rancher    — Rancher
+#   forge4x    — Forge4X root
 # =============================================================================
 
 set -euo pipefail
@@ -23,14 +34,79 @@ fi
 
 # Parse arguments
 CLUSTER_TYPE="${CLUSTER_TYPE:-kind}"
+SERVICES="all"
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --cluster) CLUSTER_TYPE="$2"; shift 2 ;;
+    --services) SERVICES="$2"; shift 2 ;;
     *) echo "Unknown arg: $1"; exit 1 ;;
   esac
 done
 
-DOMAIN="${DOMAIN:-util.lcl}"
+# ---------------------------------------------------------------------------
+# Service group → ArgoCD app file mapping
+# "core" apps are always active and never moved out.
+# ---------------------------------------------------------------------------
+declare -A SERVICE_GROUPS
+SERVICE_GROUPS=(
+  [storage]="ug-cnpg.yaml ug-cnpg-clusters.yaml ug-minio.yaml"
+  [identity]="ug-keycloak.yaml ug-openldap.yaml ug-openbao.yaml"
+  [devtools]="ug-gitea.yaml ug-gitea-runner.yaml ug-vscodium.yaml"
+  [monitoring]="ug-monitoring.yaml ug-velero.yaml"
+  [ai]="ug-ollama.yaml ug-open-webui.yaml"
+  [rancher]="ug-rancher.yaml"
+  [forge4x]="ug-forge4x-root.yaml"
+)
+
+APPS_DIR="${REPO_DIR}/argocd/apps"
+AVAILABLE_DIR="${REPO_DIR}/argocd/available"
+
+# Move all non-core apps to available/, then move selected groups back to apps/
+activate_services() {
+  local selected="$1"
+  mkdir -p "$AVAILABLE_DIR"
+
+  if [[ "$selected" == "all" ]]; then
+    # Move everything from available/ back to apps/
+    for f in "$AVAILABLE_DIR"/ug-*.yaml; do
+      [[ -f "$f" ]] && mv "$f" "$APPS_DIR/"
+    done
+    return
+  fi
+
+  # Move all non-core group apps to available/
+  for group in "${!SERVICE_GROUPS[@]}"; do
+    for app in ${SERVICE_GROUPS[$group]}; do
+      [[ -f "$APPS_DIR/$app" ]] && mv "$APPS_DIR/$app" "$AVAILABLE_DIR/"
+    done
+  done
+
+  # Move selected groups back to apps/
+  IFS=',' read -ra SELECTED <<< "$selected"
+  for group in "${SELECTED[@]}"; do
+    group=$(echo "$group" | tr -d ' ')
+    if [[ -z "${SERVICE_GROUPS[$group]+x}" ]]; then
+      echo "WARNING: Unknown service group '${group}' — skipping"
+      continue
+    fi
+    for app in ${SERVICE_GROUPS[$group]}; do
+      [[ -f "$AVAILABLE_DIR/$app" ]] && mv "$AVAILABLE_DIR/$app" "$APPS_DIR/"
+    done
+  done
+
+  log "Active service groups: core $(echo "$selected" | tr ',' ' ')"
+  log "Active apps:"
+  ls "$APPS_DIR"/ug-*.yaml 2>/dev/null | xargs -n1 basename | sed 's/^/  /'
+}
+
+# Check if a service group is active
+group_active() {
+  local group="$1"
+  [[ "$SERVICES" == "all" ]] && return 0
+  echo ",$SERVICES," | grep -q ",$group,"
+}
+
+DOMAIN="${DOMAIN:-gitops.lcl}"
 OVERLAY_DIR="${REPO_DIR}/infra/overlays/${CLUSTER_TYPE}"
 
 if [[ ! -d "$OVERLAY_DIR" ]]; then
@@ -56,8 +132,15 @@ if [[ "$CLUSTER_TYPE" == "kind" ]]; then
   if ! helm status cilium -n kube-system &>/dev/null; then
     log "Installing Cilium..."
     helm repo add cilium https://helm.cilium.io/ && helm repo update
+
+    # Auto-detect control-plane IP for kube-proxy replacement
+    CP_IP=$(docker inspect kind-clus-control-plane -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' 2>/dev/null | head -1)
+    log "Control-plane IP for Cilium: ${CP_IP}"
+
     helm install cilium cilium/cilium -n kube-system \
-      -f "${OVERLAY_DIR}/cilium-values.yaml"
+      -f "${OVERLAY_DIR}/cilium-values.yaml" \
+      --set k8sServiceHost="${CP_IP}" \
+      --set k8sServicePort=6443
     wait_ready kube-system "app.kubernetes.io/name=cilium-agent" 180
   else
     log "Cilium already installed, skipping."
@@ -81,7 +164,7 @@ if [[ -f "${OVERLAY_DIR}/metallb-values.yaml" ]]; then
 
     # Auto-detect Kind Docker network IPv4 range
     if [[ "$CLUSTER_TYPE" == "kind" ]]; then
-      SUBNET=$(docker network inspect kind -f '{{range .IPAM.Config}}{{.Subnet}}{{end}}' 2>/dev/null \
+      SUBNET=$(docker network inspect kind -f '{{range .IPAM.Config}}{{.Subnet}} {{end}}' 2>/dev/null \
         | grep -oE '[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+/[0-9]+' | head -1)
       if [[ -n "$SUBNET" ]]; then
         BASE=$(echo "$SUBNET" | cut -d'/' -f1 | cut -d'.' -f1-2)
@@ -233,34 +316,56 @@ fi
 # =============================================================================
 log "=== Phase 5: Activate GitOps ==="
 
-# Wait for Gitea API
-GITEA_URL="https://gitea.${DOMAIN}"
-log "Waiting for Gitea API at ${GITEA_URL}..."
+# Port-forward to Gitea (gateway may not have external IP yet)
+log "Setting up port-forward to Gitea..."
+kubectl -n devtools port-forward svc/gitea-http 3000:3000 &>/dev/null &
+PF_PID=$!
+sleep 3
+
+GITEA_LOCAL="http://localhost:3000"
+log "Waiting for Gitea API..."
 for i in $(seq 1 30); do
-  if curl -sk "${GITEA_URL}/api/v1/version" &>/dev/null; then break; fi
-  sleep 5
+  if curl -s "${GITEA_LOCAL}/api/v1/version" &>/dev/null; then break; fi
+  sleep 3
 done
+
+# Detect Gitea admin username (Helm chart may use gitea_admin instead of admin)
+GITEA_ACTUAL_USER=$(kubectl exec -n devtools deploy/gitea -- \
+  gitea admin user list --admin 2>/dev/null | awk 'NR==2{print $2}')
+GITEA_ACTUAL_USER="${GITEA_ACTUAL_USER:-${GITEA_ADMIN_USER}}"
+log "Gitea admin user: ${GITEA_ACTUAL_USER}"
 
 # Create repo in Gitea
 log "Creating util-gitops repo in Gitea..."
-curl -sk -X POST "${GITEA_URL}/api/v1/user/repos" \
+curl -s -X POST "${GITEA_LOCAL}/api/v1/user/repos" \
   -H "Content-Type: application/json" \
-  -u "${GITEA_ADMIN_USER}:${GITEA_ADMIN_PASSWORD}" \
+  -u "${GITEA_ACTUAL_USER}:${GITEA_ADMIN_PASSWORD}" \
   -d '{"name":"util-gitops","auto_init":false,"private":false}' || true
 
-# Push this repo
+# Push this repo via port-forward
 cd "$REPO_DIR"
-if ! git remote get-url gitea &>/dev/null; then
-  git remote add gitea "${GITEA_URL}/${GITEA_ADMIN_USER}/util-gitops.git"
-fi
-git push gitea main 2>/dev/null || git push -u gitea main
+GITEA_PUSH_URL="http://${GITEA_ACTUAL_USER}:${GITEA_ADMIN_PASSWORD}@localhost:3000/${GITEA_ACTUAL_USER}/util-gitops.git"
+git remote remove gitea 2>/dev/null || true
+git remote add gitea "$GITEA_PUSH_URL"
+git push -u gitea main 2>/dev/null || git push gitea main
+
+# Update remote to use domain URL (for future pushes after gateway is up)
+GITEA_URL="https://gitea.${DOMAIN}"
+git remote set-url gitea "${GITEA_URL}/${GITEA_ACTUAL_USER}/util-gitops.git"
 
 # Register repo with ArgoCD
 log "Registering repo with ArgoCD..."
 kubectl -n argocd exec deploy/argocd-server -- \
-  argocd repo add "${GITEA_URL}/${GITEA_ADMIN_USER}/util-gitops.git" \
-    --username "${GITEA_ADMIN_USER}" --password "${GITEA_ADMIN_PASSWORD}" \
+  argocd repo add "${GITEA_URL}/${GITEA_ACTUAL_USER}/util-gitops.git" \
+    --username "${GITEA_ACTUAL_USER}" --password "${GITEA_ADMIN_PASSWORD}" \
     --insecure-skip-server-verification 2>/dev/null || true
+
+# Clean up port-forward
+kill $PF_PID 2>/dev/null || true
+
+# Activate selected service groups (moves apps in/out of argocd/apps/)
+log "Activating service groups: ${SERVICES}"
+activate_services "$SERVICES"
 
 # Apply ArgoCD projects
 log "Applying ArgoCD projects..."
@@ -284,5 +389,11 @@ log "=== Bootstrap complete ==="
 log "ArgoCD UI:  https://argocd.${DOMAIN}"
 log "Gitea:      https://gitea.${DOMAIN}"
 log ""
+log "Active service groups: ${SERVICES}"
 log "ArgoCD will now discover and sync all child applications."
 log "Monitor progress: kubectl get applications -n argocd"
+log ""
+log "To add/remove services later:"
+log "  mv argocd/available/ug-<service>.yaml argocd/apps/    # activate"
+log "  mv argocd/apps/ug-<service>.yaml argocd/available/    # deactivate"
+log "  git add -A && git commit -m 'Update services' && git push gitea main"

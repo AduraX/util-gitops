@@ -9,7 +9,7 @@ spec:
       namespace: kgateway-system
       sectionName: https
   hostnames:
-    - "vscodium.util.lcl"
+    - "vscodium.gitops.lcl"
   rules:
     - matches:
         - path:
