@@ -5,9 +5,9 @@ metadata:
   namespace: devtools
 spec:
   parentRefs:
-    - name: util-gateway
-      namespace: kgateway-system
-      sectionName: https
+    - name: traefik-gateway
+      namespace: traefik
+      sectionName: websecure
   hostnames:
     - "vscodium.gitops.lcl"
   rules:
