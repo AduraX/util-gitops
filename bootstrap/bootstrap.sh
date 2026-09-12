@@ -48,7 +48,11 @@ DOMAIN="${DOMAIN:-gitops.lcl}"
 GITEA_DOMAIN="${GITEA_DOMAIN:-gitea.util.lcl}"
 GITEA_URL="https://${GITEA_DOMAIN}"
 
-log() { echo "[$(date +"%H:%M:%S")] $1"; }
+_F4X_START_TIME=${_F4X_START_TIME:-$(date +%s)}
+log()  { local _e=$(( $(date +%s) - _F4X_START_TIME )); tput setaf 2; echo "[$(date '+%H:%M:%S') +$((_e/60))m$((_e%60))s] $*"; tput sgr0 2>/dev/null; }
+err()  { tput setaf 1; echo "[$(date '+%H:%M:%S')] ERROR: $*" >&2; tput sgr0 2>/dev/null; }
+warn() { tput setaf 3; echo "[$(date '+%H:%M:%S')] WARN: $*"; tput sgr0 2>/dev/null; }
+bold() { tput setaf 5 bold 2>/dev/null; echo "$*"; tput sgr0 2>/dev/null; }
 
 wait_ready() {
   local ns="$1" label="$2" timeout="${3:-120}"
@@ -155,10 +159,20 @@ log "=== Phase 2: Activate GitOps ==="
 
 # Create/update repo in Gitea
 log "Creating util-gitops repo in Gitea..."
-curl -sk -X POST "${GITEA_URL}/api/v1/user/repos" \
+GITEA_RESPONSE=$(curl -sk -w '\n%{http_code}' -X POST "${GITEA_URL}/api/v1/user/repos" \
   -H "Content-Type: application/json" \
   -u "${GITEA_ADMIN_USER}:${GITEA_ADMIN_PASSWORD}" \
-  -d '{"name":"util-gitops","auto_init":false,"private":false}' 2>/dev/null || true
+  -d '{"name":"util-gitops","auto_init":false,"private":false}')
+GITEA_HTTP_CODE=$(echo "$GITEA_RESPONSE" | tail -1)
+if [[ "$GITEA_HTTP_CODE" == "401" || "$GITEA_HTTP_CODE" == "403" ]]; then
+  err "Gitea authentication failed (HTTP ${GITEA_HTTP_CODE}). Check GITEA_ADMIN_USER/GITEA_ADMIN_PASSWORD in config.env."
+  exit 1
+elif [[ "$GITEA_HTTP_CODE" == "409" ]]; then
+  log "Gitea repo already exists, continuing."
+elif [[ "$GITEA_HTTP_CODE" -ge 400 ]]; then
+  err "Gitea repo creation failed (HTTP ${GITEA_HTTP_CODE}): $(echo "$GITEA_RESPONSE" | head -1)"
+  exit 1
+fi
 
 # Activate selected service groups
 log "Activating service groups: ${SERVICES}"
@@ -209,8 +223,8 @@ ARGOCD_PASS=$(kubectl -n argocd get secret argocd-initial-admin-secret \
   -o jsonpath="{.data.password}" 2>/dev/null | base64 -d || echo "unknown")
 
 log ""
-log "=== Bootstrap complete ==="
-log "ArgoCD UI:  https://argocd.${DOMAIN}"
+bold "=== Bootstrap complete ==="
+bold "ArgoCD UI:  https://argocd.${DOMAIN}"
 log "            or: kubectl port-forward svc/argocd-server -n argocd 8080:443"
 log "ArgoCD password: ${ARGOCD_PASS}"
 log "Gitea (Docker): ${GITEA_URL}"
