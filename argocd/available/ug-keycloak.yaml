@@ -18,7 +18,7 @@ spec:
         releaseName: keycloak
         valueFiles:
           - $values/platform/identity/keycloak/values.yaml
-    - repoURL: https://gitea.util.lcl/admin/util-gitops.git
+    - repoURL: https://gitea.util.lcl/AduraX/util-gitops.git
       targetRevision: main
       ref: values
   destination:

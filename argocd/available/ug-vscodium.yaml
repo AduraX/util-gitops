@@ -11,7 +11,7 @@ metadata:
 spec:
   project: ug-infra
   source:
-    repoURL: https://gitea.util.lcl/admin/util-gitops.git
+    repoURL: https://gitea.util.lcl/AduraX/util-gitops.git
     targetRevision: main
     path: platform/devtools/vscodium
     directory:

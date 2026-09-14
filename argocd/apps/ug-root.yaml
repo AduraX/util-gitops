@@ -8,7 +8,7 @@ metadata:
 spec:
   project: ug-root
   source:
-    repoURL: https://gitea.util.lcl/admin/util-gitops.git
+    repoURL: https://gitea.util.lcl/AduraX/util-gitops.git
     targetRevision: main
     path: argocd/apps
     directory:
