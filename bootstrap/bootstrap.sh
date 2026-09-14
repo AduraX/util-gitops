@@ -178,6 +178,11 @@ fi
 log "Activating service groups: ${SERVICES}"
 activate_services "$SERVICES"
 
+# Update Gitea repo owner in all ArgoCD Application manifests
+log "Setting Gitea repo owner to '${GITEA_ADMIN_USER}' in manifests..."
+find "$REPO_DIR" -name '*.yaml' -exec \
+  sed -i "s|${GITEA_DOMAIN}/[^/]*/util-gitops|${GITEA_DOMAIN}/${GITEA_ADMIN_USER}/util-gitops|g" {} +
+
 # Commit and push
 cd "$REPO_DIR"
 git add -A 2>/dev/null || true
