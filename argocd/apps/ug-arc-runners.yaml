@@ -1,0 +1,28 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: ug-arc-runners
+  namespace: argocd
+  labels:
+    app.kubernetes.io/part-of: util-gitops
+    util-gitops.io/category: cicd
+  annotations:
+    argocd.argoproj.io/sync-wave: "4"
+spec:
+  project: ug-infra
+  source:
+    repoURL: https://gitea.util.lcl/AduraX/util-gitops.git
+    targetRevision: main
+    path: platform/cicd/arc-runners
+    directory:
+      recurse: false
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: arc-runners
+  syncPolicy:
+    automated:
+      prune: false
+      selfHeal: true
+    syncOptions:
+      - ServerSideApply=true
+      - CreateNamespace=true
