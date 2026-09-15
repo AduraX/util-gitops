@@ -20,6 +20,8 @@
 #   ai         — Ollama, Open WebUI
 #   rancher    — Rancher
 #   forge4x    — Forge4X root
+
+#  kubectl create secret generic github-arc-token --namespace arc-runners  --from-literal=github_token='<your-PAT>'   
 # =============================================================================
 
 set -euo pipefail
