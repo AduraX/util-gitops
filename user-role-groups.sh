@@ -16,8 +16,6 @@ kubectl auth can-i create deployments.apps -n tenant-a
 kubectl auth can-i delete pods -n tenant-a
 kubectl auth can-i get nodes
 
-
-
 # Read pod logs
 kubectl auth can-i get pods --subresource=log -n tenant-a
 
@@ -46,15 +44,12 @@ else
 fi
 
 
-
-
 # 2. Configure the Kubernetes API server
 # For Kubernetes 1.34+, use the stable structured authentication configuration.
 
 # /etc/kubernetes/authentication-config.yaml
 apiVersion: apiserver.config.k8s.io/v1
 kind: AuthenticationConfiguration
-
 jwt:
   - issuer:
       url: https://sso.forge4x.example/realms/forge4x
@@ -80,20 +75,13 @@ jwt:
       - expression: "user.groups.all(group, !group.startsWith('system:'))"
         message: "OIDC groups cannot use the reserved system prefix"
 
-Mount this file into every API-server instance and add:
-
+# Mount this file into every API-server instance and add:
 --authentication-config=/etc/kubernetes/authentication-config.yaml
-
-
-
-
-
 
 
 # 1. Groups referenced by Kubernetes RBAC
 # This lists all group names used in RoleBinding and ClusterRoleBinding resources:
 kubectl get rolebindings,clusterrolebindings -A -o jsonpath='{range .items[*]}{range .subjects[?(@.kind=="Group")]}{.name}{"\n"}{end}{end}' | sort -u
-
 
 
 # To show each group together with its binding and granted role, using jq:
