@@ -13,7 +13,7 @@ spec:
   sources:
     - repoURL: https://dl.gitea.com/charts/
       chart: gitea-act-runner
-      targetRevision: "*"
+      targetRevision: "0.1.5"
       helm:
         releaseName: gitea-runner
         valueFiles:

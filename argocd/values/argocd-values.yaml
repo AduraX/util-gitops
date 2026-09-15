@@ -24,10 +24,6 @@ controller:
   readinessProbe:
     timeoutSeconds: 5
 
-server:
-  extraArgs:
-    - --insecure    # TLS terminated at gateway
-
 configs:
   params:
     server.insecure: true

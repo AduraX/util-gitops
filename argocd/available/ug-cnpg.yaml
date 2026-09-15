@@ -13,7 +13,7 @@ spec:
   sources:
     - repoURL: https://cloudnative-pg.github.io/charts
       chart: cloudnative-pg
-      targetRevision: "*"
+      targetRevision: "0.29.0"
       helm:
         releaseName: cnpg
         valueFiles:

@@ -13,7 +13,7 @@ spec:
   sources:
     - repoURL: https://actions-runner-controller.github.io/actions-runner-controller
       chart: gha-runner-scale-set-controller
-      targetRevision: "*"
+      targetRevision: "0.10.5"
       helm:
         releaseName: arc
         valueFiles:

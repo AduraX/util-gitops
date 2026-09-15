@@ -1,39 +1,43 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: ug-vault
+  name: ug-cert-manager
   namespace: argocd
   labels:
     app.kubernetes.io/part-of: util-gitops
-    util-gitops.io/category: secrets
+    util-gitops.io/category: infra
   annotations:
-    argocd.argoproj.io/sync-wave: "3"
+    argocd.argoproj.io/sync-wave: "1"
 spec:
   project: ug-infra
   sources:
-    - repoURL: https://helm.releases.hashicorp.com
-      chart: vault
-      targetRevision: "*"
+    - repoURL: https://charts.jetstack.io
+      chart: cert-manager
+      targetRevision: "v1.21.2"
       helm:
-        releaseName: vault
+        releaseName: cert-manager
         valueFiles:
-          - $values/platform/secrets/vault/values.yaml
+          - $values/infra/base/cert-manager/values.yaml
     - repoURL: https://gitea.util.lcl/AduraX/util-gitops.git
       targetRevision: main
       ref: values
   destination:
     server: https://kubernetes.default.svc
-    namespace: secrets
+    namespace: cert-manager
   ignoreDifferences:
+    - group: admissionregistration.k8s.io
+      kind: MutatingWebhookConfiguration
+      jqPathExpressions:
+        - .webhooks[]?.clientConfig.caBundle
+    - group: admissionregistration.k8s.io
+      kind: ValidatingWebhookConfiguration
+      jqPathExpressions:
+        - .webhooks[]?.clientConfig.caBundle
     - group: ""
       kind: Service
       jsonPointers:
         - /spec/clusterIP
         - /spec/clusterIPs
-    - group: admissionregistration.k8s.io
-      kind: MutatingWebhookConfiguration
-      jqPathExpressions:
-        - .webhooks[]?.clientConfig.caBundle
   syncPolicy:
     automated:
       prune: false
