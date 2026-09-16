@@ -7,21 +7,26 @@ metadata:
     app.kubernetes.io/part-of: util-gitops
     util-gitops.io/category: cicd
   annotations:
-    argocd.argoproj.io/sync-wave: "4"
+    argocd.argoproj.io/sync-wave: "5"
 spec:
   project: ug-infra
-  source:
-    repoURL: https://gitea.util.lcl/AduraX/util-gitops.git
-    targetRevision: main
-    path: platform/cicd/arc-runners
-    directory:
-      recurse: false
+  sources:
+    - repoURL: ghcr.io/actions/actions-runner-controller-charts
+      chart: gha-runner-scale-set
+      targetRevision: "0.14.2"
+      helm:
+        releaseName: default-runner
+        valueFiles:
+          - $values/platform/cicd/arc-runners/values.yaml
+    - repoURL: https://gitea.util.lcl/AduraX/util-gitops.git
+      targetRevision: main
+      ref: values
   destination:
     server: https://kubernetes.default.svc
     namespace: arc-runners
   syncPolicy:
     automated:
-      prune: false
+      prune: true
       selfHeal: true
     syncOptions:
       - ServerSideApply=true
